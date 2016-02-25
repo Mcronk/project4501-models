@@ -36,6 +36,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'project4501_models',
+    'mod_wsgi.server',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -57,9 +59,12 @@ WSGI_APPLICATION = 'project4501_models.wsgi.application'
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   'default': {
+    'ENGINE': 'mysql.connector.django',
+    'NAME': 'cs4501',
+    'USER': 'www',
+    'PASSWORD': 'S3cure',
+    'HOST': 'db',    
     }
 }
 
