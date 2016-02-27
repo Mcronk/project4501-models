@@ -9,4 +9,9 @@ urlpatterns = patterns('',
     url(r'^api/v1/users/(?P<pk>[0-9]+)$', views.user_detail),
 
     url(r'^api/v1/courses/$',views.course_list),
+    url(r'^api/v1/courses/(?P<pk>[0-9]+)$',views.course_detail),
+
+
+    url(r'^api/v1/courses/(?P<pk>[0-9]+)/sessions/$',views.session_list),
+    url(r'^api/v1/courses/(?P<pk1>[0-9]+)/sessions/(?P<pk2>[0-9]+)$',views.session_detail),
 )
