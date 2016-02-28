@@ -5,13 +5,13 @@ from . import views
 urlpatterns = patterns('',
 	url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^api/v1/users/$',views.user_list),
-    url(r'^api/v1/users/(?P<pk>[0-9]+)$', views.user_detail),
+    url(r'^api/v1/user/$',views.user_list),
+    url(r'^api/v1/user/(?P<pk>[0-9]+)$', views.user_detail),
 
-    url(r'^api/v1/courses/$',views.course_list),
-    url(r'^api/v1/courses/(?P<pk>[0-9]+)$',views.course_detail),
+    url(r'^api/v1/course/$',views.course_list),
+    url(r'^api/v1/course/(?P<pk>[0-9]+)$',views.course_detail),
 
 
-    url(r'^api/v1/courses/(?P<pk>[0-9]+)/sessions/$',views.session_list),
-    url(r'^api/v1/courses/(?P<pk1>[0-9]+)/sessions/(?P<pk2>[0-9]+)$',views.session_detail),
+    url(r'^api/v1/course/(?P<pk>[0-9]+)/session/$',views.session_list),
+    url(r'^api/v1/course/(?P<pk1>[0-9]+)/session/(?P<pk2>[0-9]+)$',views.session_detail),
 )

@@ -12,7 +12,7 @@ def user_list(request):
     if request.method == 'GET':
         users = User.objects.all()
         users_data = serializers.serialize("json", users) 
-        return JsonResponse(users_data, safe=False)
+        return HttpResponse(users_data)
     elif request.method == 'POST':   
         name = request.POST.get('name')
         password = request.POST.get('password')
@@ -34,7 +34,7 @@ def user_detail(request, pk):
     if request.method == 'GET':
         #Method 1: a serialized json
         user_data = serializers.serialize("json", [user,]) 
-        return JsonResponse(user_data, safe=False)
+        return HttpResponse(user_data)
         #Method 2: return a dict
         # data = model_to_dict(user)
         # return JsonResponse(data, safe=False)
@@ -56,7 +56,7 @@ def course_list(request):
         courses = Course.objects.all()
         courses_data = serializers.serialize("json", courses) 
         #Attention: Tutor data is pk value, can use Natural Keys to use other fields 
-        return JsonResponse(courses_data, safe=False)
+        return HttpResponse(courses_data)
     elif request.method == 'POST':   
         name = request.POST.get('name')
         tag = request.POST.get('tag')
@@ -82,7 +82,7 @@ def course_detail(request, pk):
     if request.method == 'GET':
         #Method 1: a serialized json
         course_data = serializers.serialize("json", [course,]) 
-        return JsonResponse(course_data, safe=False)
+        return HttpResponse(course_data)
         #Method 2: return a dict
         # data = model_to_dict(course)
         # return JsonResponse(data, safe=False)
@@ -112,7 +112,7 @@ def session_list(request, pk):
     if request.method == 'GET':
         sessions = Session.objects.filter(course=course)
         sessions_data = serializers.serialize("json", sessions) 
-        return JsonResponse(sessions_data, safe=False)
+        return HttpResponse(sessions_data)
     elif request.method == 'POST':   
         time = request.POST.get('time')
         session = Session.objects.create(time=time, course=course)
@@ -136,7 +136,7 @@ def session_detail(request, pk1, pk2):
     if request.method == 'GET':
         #Method 1: a serialized json
         session_data = serializers.serialize("json", [session,]) 
-        return JsonResponse(session_data, safe=False)
+        return HttpResponse(session_data)
         #Method 2: return a dict
         # data = model_to_dict(session)
         # return JsonResponse(data, safe=False)
