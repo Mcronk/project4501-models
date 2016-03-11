@@ -1,10 +1,40 @@
 from django.http import HttpResponse, JsonResponse
-from project4501_models.models import User, Course, Session
+from project4501_models.models import User, Course, Session, Authenticator
 from django.core import serializers
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 import json
+import os
+import hmac
+import settings
+from datetime import datetime  
+
+#AUTHENTICATOR: login check and create new authenticator
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        #email is the username for users to login
+        input_email = request.POST.get('email')
+        input_password = request.POST.get('password')
+        user = User.objects.filter(email = input_email)
+        if input_password == user.password:
+            authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
+            new_authenticator = Authenticator.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now)
+            new_authenticator.save()
+            authenticator_data = serializers.serialize("json", [new_authenticator,]) 
+            return HttpResponse(authenticator_data)
+        else:
+            return JsonResponse({'status': 'failure: wrong password'}, safe=False)
+
+#need to change to a specific authenticator API
+#AUTHENTICATOR: logout check and delete authenticator
+@csrf_exempt
+def logout(request):
+    if request.method == 'DELETE':
+        authenticator = request.POST.get('authenticator')
+        Authenticator.objects.get(authenticator=authenticator).delete()
+        return JsonResponse({'status': 'success: delete authenticator'}, safe=False)
 
 #USER: listing all the existing users, or creating a new user.
 @csrf_exempt

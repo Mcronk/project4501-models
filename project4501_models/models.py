@@ -5,6 +5,11 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime  
 
+class Authenticator(models.Model):
+	user_id = models.IntegerField()
+	authenticator = models.TextField(primary_key = True)
+	date_created = models.DateTimeField('Create_time')
+
 class User(models.Model):
 	# id = models.IntegerField(primary_key = True)
 	name = models.CharField(max_length = 20)
@@ -29,7 +34,7 @@ class Course(models.Model):
 
 class Session(models.Model):
 	# id = models.IntegerField(primary_key = True)
-	time = models.DateTimeField('Class Time')
+	time = models.DateTimeField('Class_time')
 	
 	student = models.ManyToManyField('User', related_name = 'student_session')
 	course = models.ForeignKey('Course', related_name = 'course_session')
