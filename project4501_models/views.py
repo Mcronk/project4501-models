@@ -4,6 +4,7 @@ from django.core import serializers
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from django.contrib.auth import hashers
 import json
 import os
 import hmac
@@ -11,29 +12,30 @@ from . import settings
 from datetime import datetime  
 
 
-
 #AUTHENTICATOR: login check and create new authenticator
 @csrf_exempt
 def login(request):
-    if request.method == 'POST':
-        #email is the username for users to login
-        input_email = request.POST.get('email')
-        input_password = request.POST.get('password')
-        users = User.objects.filter(email = input_email)
-        if not users:
-            return JsonResponse({'status': 'failure: no such user'}, safe=False)
-        user = users[0]
-        if input_password == user.password:
-            authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
-            new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
-            new_authenticator.save()
-            authenticator_data = serializers.serialize("json", [new_authenticator,]) 
-            return JsonResponse({'status': 'success', 'authenticator': authenticator}, safe=False)
-            return HttpResponse(authenticator_data)
-        else:
-            return JsonResponse({'status': 'failure: wrong password'}, safe=False)
-    return JsonResponse({'status': 'confused: please give id and password'}, safe=False)
-
+    if request.method != 'POST':
+        return _error_response(request, "please make POST request with id and password")
+    if 'email' not in request.POST or 'password' not in request.POST:
+        return _error_response(request, "missing required field: id or password")
+    #email is the username for users to login
+    input_email = request.POST.get('email')
+    input_password = request.POST.get('password')
+    try:
+        user = User.objects.get(email = input_email)
+    except models.User.DoesNotExist:
+        return _error_response(request, "no such user")
+    if input_password == user.password:
+        authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
+        new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
+        new_authenticator.save()
+        authenticator_data = serializers.serialize("json", [new_authenticator,]) 
+        return JsonResponse({'status': 'success', 'authenticator': authenticator}, safe=False)
+        return HttpResponse(authenticator_data)
+    else:
+        return JsonResponse({'status': 'failure: wrong password'}, safe=False)
+    
 #need to change to a specific authenticator API
 #AUTHENTICATOR: logout check and delete authenticator
 @csrf_exempt
@@ -194,3 +196,7 @@ def session_detail(request, pk1, pk2):
     elif request.method == 'DELETE':
         Session.objects.get(pk=pk2).delete()
         return JsonResponse({'status': 'success: delete session'}, safe=False)
+
+
+def _error_response(request, error_msg):
+    return JsonResponse({'status': 'fail', 'msg': error_msg}, safe=False)
