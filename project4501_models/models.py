@@ -6,8 +6,8 @@ from django.utils import timezone
 from datetime import datetime  
 
 class Authenticator(models.Model):
-	user_id = models.IntegerField()
-	authenticator = models.TextField(primary_key = True)
+	user_id = models.CharField(max_length = 20)
+	authenticator = models.CharField(max_length = 255, primary_key = True)
 	date_created = models.DateTimeField('Create_time')
 
 class User(models.Model):

@@ -7,8 +7,10 @@ from django.forms.models import model_to_dict
 import json
 import os
 import hmac
-import settings
+from . import settings
 from datetime import datetime  
+
+
 
 #AUTHENTICATOR: login check and create new authenticator
 @csrf_exempt
@@ -17,15 +19,20 @@ def login(request):
         #email is the username for users to login
         input_email = request.POST.get('email')
         input_password = request.POST.get('password')
-        user = User.objects.filter(email = input_email)
+        users = User.objects.filter(email = input_email)
+        if not users:
+            return JsonResponse({'status': 'failure: no such user'}, safe=False)
+        user = users[0]
         if input_password == user.password:
             authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
-            new_authenticator = Authenticator.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now)
+            new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
             new_authenticator.save()
             authenticator_data = serializers.serialize("json", [new_authenticator,]) 
+            return JsonResponse({'status': 'success', 'authenticator': authenticator}, safe=False)
             return HttpResponse(authenticator_data)
         else:
             return JsonResponse({'status': 'failure: wrong password'}, safe=False)
+    return JsonResponse({'status': 'confused: please give id and password'}, safe=False)
 
 #need to change to a specific authenticator API
 #AUTHENTICATOR: logout check and delete authenticator
