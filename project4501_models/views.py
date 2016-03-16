@@ -30,15 +30,16 @@ def login(request):
         user = User.objects.get(email = input_email)
     except models.User.DoesNotExist:
         return _error_response(request, "no such user")
-    if input_password == user.password:
+    if hashers.check_password(input_password, user.password):
+    # if input_password == user.password:
         authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
         new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
         new_authenticator.save()
         authenticator_data = serializers.serialize("json", [new_authenticator,]) 
-        return JsonResponse({'status': 'success', 'authenticator': authenticator}, safe=False)
-        return HttpResponse(authenticator_data)
+        # return _success_response(request, {'authenticator': authenticator})
+        return _success_response(request, "successfully login")
     else:
-        return JsonResponse({'status': 'failure: wrong password'}, safe=False)
+        return _error_response(request, "wrong password")
     
 #need to change to a specific authenticator API
 #AUTHENTICATOR: logout check and delete authenticator
@@ -59,7 +60,16 @@ def user_list(request):
     elif request.method == 'POST':   
         if 'name' not in request.POST or 'password' not in request.POST or 'email' not in request.POST or 'phone' not in request.POST or 'description' not in request.POST or 'grade' not in request.POST:
             return _error_response(request, "missing required field: name or password or email or phone or description or grade")
-        user = User(name = request.POST.get('name'), password = hashers.make_password(request.POST.get('password')), email = request.POST.get('email'), phone = request.POST.get('phone'), description = request.POST.get('description'), grade = request.POST.get('grade'))
+        try:
+            user = User.objects.get(email=request.POST.get('email'))
+        except User.DoesNotExist:
+            user = User(name = request.POST.get('name'), password = hashers.make_password(request.POST.get('password')), email = request.POST.get('email'), phone = request.POST.get('phone'), description = request.POST.get('description'), grade = request.POST.get('grade'))
+            try:
+                user.save()
+            except db.Error:
+                return _error_response(request, "db save error")
+            return _success_response(request, {'user_name': user.name})
+        return _error_response(request, "This email has been registered")
         # name = request.POST.get('name')
         # password = request.POST.get('password')
         # email = request.POST.get('email')
@@ -67,11 +77,6 @@ def user_list(request):
         # description = request.POST.get('description')
         # grade = request.POST.get('grade')
         # user = User.objects.create(name = name, password=hashers.make_password(password), email=email, phone=phone,description=description,grade=grade)
-        try:
-            user.save()
-        except db.Error:
-            return _error_response(request, "db save error")
-        return _success_response(request, {'user_name': user.name})
         
 #USER: used to retrieve, update or delete the individual user.
 @csrf_exempt
