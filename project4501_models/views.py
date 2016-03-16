@@ -21,6 +21,8 @@ from django import db
 def login(request):
     if request.method != 'POST':
         return _error_response(request, "please make POST request with id and password")
+    if 'data' not in request.POST:
+        return _error_response(request, "I don't get data")
     if 'email' not in request.POST or 'password' not in request.POST:
         return _error_response(request, "missing required field: id or password")
     #email is the username for users to login
