@@ -5,6 +5,7 @@ from . import views
 urlpatterns = patterns('',
 	url(r'^admin/', include(admin.site.urls)),
 
+    url(r'^api/v1/authenticator/check/$',views.check_authenticator),
 	url(r'^api/v1/authenticator/login/$',views.login),
 	#need to change to specific authenticator
     url(r'^api/v1/authenticator/logout/$',views.logout),

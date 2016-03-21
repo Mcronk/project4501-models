@@ -16,6 +16,26 @@ from django import db
 #Notes: users and courses are returned as lists
 #Notes: user and course are returned as dictionary
 
+#AUTHENTICATOR: check authentication
+@csrf_exempt
+def check_authenticator(request):
+    if request.method != 'POST':
+        return _error_response(request, "please make POST request with authenticator")
+    if 'authenticator' not in request.POST:
+        return _error_response(request, "missing required field: authenticator")
+    #email is the username for users to login
+    authenticator = request.POST.get('authenticator')
+    try:
+        auth = Authenticator.objects.get(authenticator = authenticator)
+    except models.Authenticator.DoesNotExist:
+        return _error_response(request, "no such authenticator")
+    try:
+        user = User.objects.get(email = auth.user_id)
+    except models.User.DoesNotExist:
+        return _error_response(request, "user with Authenticator.email DoesNotExist")
+    return _success_response(request, {'tutor':user.pk})
+
+
 #AUTHENTICATOR: login check and create new authenticator
 @csrf_exempt
 def login(request):
@@ -35,9 +55,9 @@ def login(request):
         authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
         new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
         new_authenticator.save()
-        authenticator_data = serializers.serialize("json", [new_authenticator,]) 
+        # authenticator_data = serializers.serialize("json", [new_authenticator,]) 
         # return _success_response(request, {'authenticator': authenticator})
-        return _success_response(request, "successfully login")
+        return _success_response(request, {'authenticator':new_authenticator.authenticator})
     else:
         return _error_response(request, "wrong password")
     
@@ -45,10 +65,19 @@ def login(request):
 #AUTHENTICATOR: logout check and delete authenticator
 @csrf_exempt
 def logout(request):
-    if request.method == 'DELETE':
+    if request.method == 'POST':
         authenticator = request.POST.get('authenticator')
-        Authenticator.objects.get(authenticator=authenticator).delete()
+        try:
+            a = Authenticator.objects.get(authenticator=authenticator)
+        except Authenticator.DoesNotExist:
+            return _error_response(request, "authenticator DoesNotExist")
+        try:
+            a.delete()
+        except:
+            return _error_response(request, "delete fail")
+        return _success_response(request)
         return JsonResponse({'status': 'success: delete authenticator'}, safe=False)
+    return _error_response(request, "use POST")
 
 #USER: listing all the existing users, or creating a new user.
 @csrf_exempt
@@ -63,7 +92,7 @@ def user_list(request):
         try:
             user = User.objects.get(email=request.POST.get('email'))
         except User.DoesNotExist:
-            user = User(name = request.POST.get('name'), password = hashers.make_password(request.POST.get('password')), email = request.POST.get('email'), phone = request.POST.get('phone'), description = request.POST.get('description'), grade = request.POST.get('grade'))
+            user = User(name = request.POST.get('name'), password = hashers.make_password(request.POST.get('password')), email = request.POST.get('email'), phone = request.POST.get('phone'), description = request.POST.get('description'), grade = int(request.POST.get('grade')))
             try:
                 user.save()
             except db.Error:
