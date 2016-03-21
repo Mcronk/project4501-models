@@ -151,12 +151,12 @@ def course_list(request):
             tutor = User.objects.get(pk=request.POST.get('tutor'))
         except User.DoesNotExist:
             return _error_response(request, "tutor DoesNotExist")
-        course = Course(tutor=tutor, name=request.POST.get('name'), tag = request.POST.get('tag'), description = request.POST.get('description'), popularity = request.POST.get('popularity'), qualification = request.POST.get('qualification'), time = request.POST.get('time'), price = request.POST.get('price'))
+        course = Course(tutor=tutor, name=request.POST.get('name'), tag = request.POST.get('tag'), description = request.POST.get('description'), popularity = int(request.POST.get('popularity')), qualification = request.POST.get('qualification'), time = request.POST.get('time'), price = int(request.POST.get('price')))
         try:
             course.save()
         except db.Error:
             return _error_response(request, "db save error")
-        return _success_response(request, {'course_name': course.name})
+        return _success_response(request, {'course_pk': course.pk})
 
 
 #COURSE: used to retrieve, update or delete the individual course.
