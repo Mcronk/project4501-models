@@ -23,7 +23,6 @@ def check_authenticator(request):
         return _error_response(request, "please make POST request with authenticator")
     if 'authenticator' not in request.POST:
         return _error_response(request, "missing required field: authenticator")
-    #email is the username for users to login
     authenticator = request.POST.get('authenticator')
     try:
         auth = Authenticator.objects.get(authenticator = authenticator)
@@ -51,17 +50,13 @@ def login(request):
     except models.User.DoesNotExist:
         return _error_response(request, "no such user")
     if hashers.check_password(input_password, user.password):
-    # if input_password == user.password:
         authenticator = hmac.new(key = settings.SECRET_KEY.encode('utf-8'), msg = os.urandom(32), digestmod = 'sha256').hexdigest()
         new_authenticator = Authenticator.objects.create(user_id = input_email, authenticator = authenticator, date_created = datetime.now())
         new_authenticator.save()
-        # authenticator_data = serializers.serialize("json", [new_authenticator,]) 
-        # return _success_response(request, {'authenticator': authenticator})
         return _success_response(request, {'authenticator':new_authenticator.authenticator})
     else:
         return _error_response(request, "wrong password")
-    
-#need to change to a specific authenticator API
+
 #AUTHENTICATOR: logout check and delete authenticator
 @csrf_exempt
 def logout(request):
@@ -99,13 +94,6 @@ def user_list(request):
                 return _error_response(request, "db save error")
             return _success_response(request, {'user_name': user.name})
         return _error_response(request, "This email has been registered")
-        # name = request.POST.get('name')
-        # password = request.POST.get('password')
-        # email = request.POST.get('email')
-        # phone = request.POST.get('phone')
-        # description = request.POST.get('description')
-        # grade = request.POST.get('grade')
-        # user = User.objects.create(name = name, password=hashers.make_password(password), email=email, phone=phone,description=description,grade=grade)
         
 #USER: used to retrieve, update or delete the individual user.
 @csrf_exempt
