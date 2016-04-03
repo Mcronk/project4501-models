@@ -16,6 +16,7 @@ from django import db
 #Notes: users and courses are returned as lists
 #Notes: user and course are returned as dictionary
 
+
 #AUTHENTICATOR: check authentication
 @csrf_exempt
 def check_authenticator(request):
@@ -144,7 +145,7 @@ def course_list(request):
             course.save()
         except db.Error:
             return _error_response(request, "db save error")
-        return _success_response(request, {'course_pk': course.pk})
+        return _success_response(request, {'pk': course.pk})
 
 
 #COURSE: used to retrieve, update or delete the individual course.
